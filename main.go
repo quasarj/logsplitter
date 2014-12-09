@@ -19,7 +19,7 @@ func check(err error) {
 func main() {
     fmt.Println("Logsplitter, starting up.")
 
-    file, err := os.Open("infile.txt")
+    file, err := os.Open("WoWCombatLog.txt")
     check(err)
 
     defer file.Close()
@@ -30,7 +30,8 @@ func main() {
 
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
-        s := strings.Split(scanner.Text(), " ")
+        text := scanner.Text() // this strips off the newlines
+        s := strings.Split(text, " ")
 
         current_date = s[0]
         if current_date != last_date {
@@ -43,7 +44,7 @@ func main() {
             check(err)
         }
 
-        outfile.Write(scanner.Bytes())
+        outfile.WriteString(text + "\n")
     }
 
     if outfile != nil {
