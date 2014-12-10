@@ -4,15 +4,12 @@ import (
     "fmt"
     "os"
     "bufio"
-    "strings"
     "bytes"
-    // "log"
 )
 
 // Because why Go, whyyyyy?
 func check(err error) {
     if err != nil {
-        // log.Fatal(err)
         panic(err)
     }
 }
@@ -25,27 +22,33 @@ func main() {
 
     defer file.Close()
 
-    var last_date string
-    var current_date string
-    var outfile *os.File
+    var (
+        last_date    []byte
+        current_date []byte
+        outfile      *os.File
+    )
 
     space := []byte(" ")
+    slash := []byte("/")
+    under := []byte("_")
 
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         text := scanner.Bytes()
         locn := bytes.Index(text, space)
 
-        current_date = string(text[:locn])
-        // if bytes.Compare(current_date, last_date) != 0 {
-        if current_date != last_date {
-            fmt.Println("New date detected:", current_date)
+        current_date = text[:locn]
+        if bytes.Compare(current_date, last_date) != 0 {
+            fmt.Printf("New date detected: %s\n", current_date)
 
-            last_date = current_date
+            last_date = append([]byte{}, current_date...) //force a copy
             if outfile != nil {
                 outfile.Close()
             }
-            outfile, err = os.Create("wow_log__" + strings.Replace(current_date, "/", "_", 1) + ".txt")
+            outfile, err = os.Create(
+                "wow_log__" +
+                string(bytes.Replace(current_date, slash, under, 1)) +
+                ".txt")
             check(err)
         }
 
@@ -58,5 +61,4 @@ func main() {
     }
 
     check(scanner.Err())
-
 }
