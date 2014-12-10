@@ -5,6 +5,7 @@ import (
     "os"
     "bufio"
     "strings"
+    "bytes"
     // "log"
 )
 
@@ -17,7 +18,7 @@ func check(err error) {
 }
 
 func main() {
-    fmt.Println("Logsplitter, starting up.")
+    fmt.Println("Logsplitter v0.2")
 
     file, err := os.Open("WoWCombatLog.txt")
     check(err)
@@ -28,14 +29,18 @@ func main() {
     var current_date string
     var outfile *os.File
 
+    space := []byte(" ")
+
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
-        text := scanner.Text() // this strips off the newlines
-        s := strings.Split(text, " ")
+        text := scanner.Bytes()
+        locn := bytes.Index(text, space)
 
-        current_date = s[0]
+        current_date = string(text[:locn])
+        // if bytes.Compare(current_date, last_date) != 0 {
         if current_date != last_date {
             fmt.Println("New date detected:", current_date)
+
             last_date = current_date
             if outfile != nil {
                 outfile.Close()
@@ -44,7 +49,8 @@ func main() {
             check(err)
         }
 
-        outfile.WriteString(text + "\n")
+        outfile.Write(text)
+        outfile.WriteString("\n")
     }
 
     if outfile != nil {
